@@ -11,6 +11,7 @@ const Page = ({text}) =>  {
 }
 
 export default function Organization({ navigation }) {
+  console.log(navigation);
   return (
     <ScrollableTabView
       tabBarBackgroundColor='#F8F8F8'
@@ -19,7 +20,7 @@ export default function Organization({ navigation }) {
       tabBarUnderlineStyle={{backgroundColor: '#F8F8F8'}}
       tabBarTextStyle={{fontFamily: 'Roboto'}}
     >
-      <Page tabLabel='Statistics' text={navigation.state.params.name} />
+      <Page tabLabel='Statistics' text={navigation.state.params.login} />
       <Page tabLabel='Feed' text='Feed' />
       <Page tabLabel='Notifications' text='Notifications' />
     </ScrollableTabView>

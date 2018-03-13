@@ -29,8 +29,8 @@ const organizationsTab = StackNavigator({
   },
   Organization: {
     screen: Organization,
-    path: '/organization/:name',
-    navigationOptions: ({ navigation }) => (header(`${navigation.state.params.name}`, true)),
+    path: '/organization/:login',
+    navigationOptions: ({ navigation }) => (header(`${navigation.state.params.login}`, true)),
   }
 })
 

@@ -11,7 +11,8 @@ export default class App extends Component {
     token: null,
     username: null,
     fontsLoaded: false,
-    organizations: []
+    organizations: [],
+    isRestoring: true,
   }
 
   async componentDidMount() {
@@ -22,13 +23,14 @@ export default class App extends Component {
       'Roboto-Light': require('./assets/fonts/Roboto-Light.ttf'),
       'Roboto-Thin': require('./assets/fonts/Roboto-Thin.ttf'),
     });
-
     const { token, username } = await restore();
     this.setState({ fontsLoaded: true, token, username });
+    await this.loadOrganizations();
+    this.setState({ isRestoring: false });
   }
 
   async componentDidUpdate(prevProps, prevState) {
-    if (prevState.token === null && this.state.token !== null) {
+    if (prevState.token === null && this.state.token !== null && !this.state.isRestoring) {
       this.loadOrganizations();
     }
   }
@@ -83,22 +85,28 @@ export default class App extends Component {
   }
 
   render() {
-    const { fontsLoaded, token, username, organizations } = this.state;
+    const { fontsLoaded, token, username, organizations, isRestoring } = this.state;
     
     if (!fontsLoaded) {
       return null;
     }
 
-    if (token) {
-      return <AppNavigation screenProps={{
-        username,
-        token,
-        organizations,
-        logout: this.performLogout,
-        unregister: this.performUnregistration,
-      }} />
+    if (token && !isRestoring) {
+      return <AppNavigation 
+        screenProps={{
+          username,
+          token,
+          organizations,
+          logout: this.performLogout,
+          unregister: this.performUnregistration,
+          loadOrganizations: this.loadOrganizations,
+        }}
+      />
     } else {
-      return <Login onPress={this.performLogin}/>
+      return <Login
+        onPress={this.performLogin}
+        restoring={this.isRestoring}
+      />
     }
   }
 }

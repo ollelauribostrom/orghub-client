@@ -1,18 +1,15 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, FlatList, RefreshControl } from 'react-native';
-import { mockOrganizations, mockFetch } from '../mock';
 import Organization from '../components/Organization';
 
 export default class Organizations extends Component {
   state = {
     refreshing: false,
-    organizations: mockOrganizations
   };
 
   onRefresh = async () => {
-    console.log('fetch new organizations');
     this.setState({ refreshing: true })
-    await mockFetch();
+    await this.props.screenProps.loadOrganizations();
     this.setState({ refreshing: false })
   }
 
@@ -20,9 +17,9 @@ export default class Organizations extends Component {
     return (
       <View style={styles.container}>
         <FlatList 
-          data={this.state.organizations}
+          data={this.props.screenProps.organizations}
           renderItem={({item}) => <Organization {...item} navigation={this.props.navigation}/>}
-          keyExtractor={organization => organization.name}
+          keyExtractor={organization => organization.login}
           refreshControl={
             <RefreshControl
               refreshing={this.state.refreshing}
