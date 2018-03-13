@@ -4,6 +4,7 @@ import ScrollableTabView from 'react-native-scrollable-tab-view'
 import { getOrganizationFeed } from '../lib/feed';
 import { getStats } from '../lib/stats';
 import FeedItem from '../components/FeedItem';
+import { Octicons } from '@expo/vector-icons';
 
 const Page = ({text}) =>  {
   return (
@@ -33,16 +34,22 @@ const Feed = ({ feedItems }) => {
 }
 
 const Stats = ({ stats }) => {
+  if (!stats) {
+    return null
+  }
+
   if (stats.error) {
     return (<Text>{stats.error}</Text>)
   }
 
   return (
     <View style={styles.container}>
-      <Text>Forks: {stats.forks}</Text>
-      <Text>Stars: {stats.stars}</Text>
-      <Text>Open Issues: {stats.issues}</Text>
-      <Text>Languages: {stats.languages.join(', ')}</Text>
+      <View style={styles.statsContainer}>
+        <Text style={styles.statsText}><Octicons name='repo-forked'/> Forks: {stats.forks}</Text>
+        <Text style={styles.statsText}><Octicons name='star'/> Stars: {stats.stars}</Text>
+        <Text style={styles.statsText}><Octicons name='issue-opened'/> Open Issues: {stats.issues}</Text>
+        <Text style={styles.statsText}><Octicons name='file-code'/> Languages: {stats.languages.join(', ')}</Text>
+      </View>
     </View>
   )
 }
@@ -91,5 +98,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  statsContainer: {
+    padding: 20
+  },
+  statsText: {
+    fontSize: 16,
+    marginBottom: 10
   }
 });
