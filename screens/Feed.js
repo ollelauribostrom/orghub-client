@@ -13,7 +13,6 @@ export default class Feed extends Component {
     this.setState({ refreshing: true })
     const { organizations, token } = this.props.screenProps;
     const feedItems = await getUserFeed(organizations, token);
-    console.log(feedItems);
     this.setState({ feedItems, refreshing: false })
   }
 
