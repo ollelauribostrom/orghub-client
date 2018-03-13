@@ -32,6 +32,7 @@ export default class App extends Component {
   }
 
   loadOrganizations = async () => {
+    console.log(this.state)
     const organizations = await getOrganizations(this.state.token);
     this.setState({ organizations });
   }

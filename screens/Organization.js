@@ -14,7 +14,6 @@ const Page = ({text}) =>  {
 }
 
 const Feed = ({ feedItems }) => {
-  console.log(feedItems);
   return (
     <View style={styles.container}>
       <FlatList 
@@ -34,9 +33,16 @@ const Feed = ({ feedItems }) => {
 }
 
 const Stats = ({ stats }) => {
+  if (stats.error) {
+    return (<Text>{stats.error}</Text>)
+  }
+
   return (
     <View style={styles.container}>
-      <Text>{JSON.stringify(stats)}</Text>
+      <Text>Forks: {stats.forks}</Text>
+      <Text>Stars: {stats.stars}</Text>
+      <Text>Open Issues: {stats.issues}</Text>
+      <Text>Languages: {stats.languages.join(', ')}</Text>
     </View>
   )
 }
@@ -55,7 +61,6 @@ export default class Organization extends Component {
   }
 
   loadFeed = async (organization, token) => {
-    console.log(organization, token);
     const feedItems = await getOrganizationFeed(organization, token);
     this.setState({ feedItems });
   }
@@ -86,12 +91,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-  },
-  heading: {
-    fontSize: 30,
-    paddingTop: 20,
-    paddingHorizontal: 20,
-    color: '#6A6A6A',
-    fontFamily: 'Roboto-Thin'
   }
 });
