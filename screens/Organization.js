@@ -1,15 +1,26 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, FlatList, RefreshControl } from 'react-native';
+import { StyleSheet, Text, View, FlatList, RefreshControl, Switch, TextInput } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view'
 import { getOrganizationFeed } from '../lib/feed';
 import { getStats } from '../lib/stats';
 import FeedItem from '../components/FeedItem';
 import { Octicons } from '@expo/vector-icons';
+import { getNotificationSettings, enableNotifications, disableNotifications, updateNotifications } from '../lib/notifications';
 
-const Page = ({text}) =>  {
+const Notifications = ({ settings, toggleNotifications, changePhone }) =>  {
   return (
-    <View style={styles.container}>
-      <Text>{text}</Text>
+    <View style={styles.settingsContainer}>
+      <View style={styles.settingField}>
+        <Text>Notifications:</Text>
+        <Switch value={!settings.off} onValueChange={toggleNotifications}/>
+      </View>
+      {
+        settings.off ? null : ( 
+        <View style={styles.settingField}>
+          <Text>SMS:</Text>
+          <TextInput value={settings.phoneNumber} onSubmitEditing={changePhone}/>
+        </View>)
+      }
     </View>
   )
 }
@@ -58,6 +69,7 @@ export default class Organization extends Component {
   state = {
     feedItems: undefined,
     stats: undefined,
+    settings: { off: true }
   }
 
   async componentWillMount() {
@@ -65,6 +77,12 @@ export default class Organization extends Component {
     const token = this.props.screenProps.token;
     await this.loadFeed(organization, token);
     await this.loadStats(organization, token);
+    await this.loadNotificationSettings(organization, token);
+  }
+
+  loadNotificationSettings = async (organization, token) => {
+    const settings = await getNotificationSettings(organization, token);
+    this.setState({ settings })
   }
 
   loadFeed = async (organization, token) => {
@@ -75,6 +93,26 @@ export default class Organization extends Component {
   loadStats = async (organization, token) => {
     const stats = await getStats(organization, token);
     this.setState({ stats });
+  }
+
+  toggleNotifications = async () => {
+    const organization = this.props.navigation.state.params.login;
+    const token = this.props.screenProps.token;
+    if (this.state.settings.off) {
+      this.setState({ settings: { off: false }})
+      await enableNotifications(organization, token);
+      await this.loadNotificationSettings(organization, token);
+    } else {
+      this.setState({ settings: { off: true }})
+      await disableNotifications(organization, token);
+    }
+  }
+
+  changePhone = async phoneNumber => {
+    this.setState({ settings: Object.assign(this.state.settings, { phoneNumber })})
+    const organization = this.props.navigation.state.params.login;
+    const token = this.props.screenProps.token;
+    await updateNotifications(this.state.settings, organization, token);
   }
 
   render() {
@@ -88,7 +126,12 @@ export default class Organization extends Component {
       >
         <Feed tabLabel='Feed' feedItems={this.state.feedItems} />
         <Stats tabLabel='Statistics' stats={this.state.stats} />
-        <Page tabLabel='Notifications' text='Notifications' />
+        <Notifications 
+          tabLabel='Notifications' 
+          settings={this.state.settings}
+          toggleNotifications={this.toggleNotifications}
+          changePhone={this.changePhone}
+        />
       </ScrollableTabView>
     );
   }
@@ -105,5 +148,17 @@ const styles = StyleSheet.create({
   statsText: {
     fontSize: 16,
     marginBottom: 10
+  },
+  settingsContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 20
+  },
+  settingField: {
+    flex: 0,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    marginBottom: 20
   }
 });
