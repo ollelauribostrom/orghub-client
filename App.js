@@ -3,13 +3,15 @@ import { StyleSheet, Text, View, Alert, Linking } from 'react-native';
 import { Font, Constants, WebBrowser } from 'expo';
 import { AppNavigation, config } from './config';
 import Login from './screens/Login';
-import { restore, login, logout } from './lib/auth';
+import { restore, login, logout, unregister } from './lib/auth';
+import { getOrganizations } from './lib/organizations';
 
 export default class App extends Component {
   state = {
     token: null,
     username: null,
     fontsLoaded: false,
+    organizations: []
   }
 
   async componentDidMount() {
@@ -25,8 +27,19 @@ export default class App extends Component {
     this.setState({ fontsLoaded: true, token, username });
   }
 
+  async componentDidUpdate(prevProps, prevState) {
+    if (prevState.token === null && this.state.token !== null) {
+      this.loadOrganizations();
+    }
+  }
+
+  loadOrganizations = async () => {
+    const organizations = await getOrganizations(this.state.token);
+    this.setState({ organizations });
+  }
+
   performLogin = async () => {
-    Linking.addEventListener('url', this.onLoginRedirect);
+    Linking.addEventListener('url', this.onLoginRedirect);;
     const url = `${config.baseUrl}/login?redirect=${Constants.linkingUri}`;
     let result = await WebBrowser.openBrowserAsync(url);
     Linking.removeEventListener('url', this.onLoginRedirect);
@@ -34,7 +47,7 @@ export default class App extends Component {
 
   onLoginRedirect = async event => {
     WebBrowser.dismissBrowser();
-    const { error, username, token } = await login(event.url);
+    const { error, username, token } = await login(event);
     if (error) {
       return Alert.alert('Something went wrong');
     }
@@ -46,8 +59,8 @@ export default class App extends Component {
       "Logout",
       "Are you sure you want to log out?",
       [
-        { text: 'Cancel', style: 'cancel' }
-        { text: 'Yes', onPress: () => {
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Yes', onPress: async () => {
             await logout(this.state.token);
             this.setState({ token: null, username: null })
         }}
@@ -60,8 +73,8 @@ export default class App extends Component {
       "Logout",
       "Are you sure you want to log out?",
       [
-        { text: 'Cancel', style: 'cancel' }
-        { text: 'Yes', onPress: () => {
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Yes', onPress: async () => {
             await unregister(this.state.token);
             this.setState({ token: null, username: null })
         }}
@@ -70,7 +83,7 @@ export default class App extends Component {
   }
 
   render() {
-    const { fontsLoaded, token, username } = this.state;
+    const { fontsLoaded, token, username, organizations } = this.state;
     
     if (!fontsLoaded) {
       return null;
@@ -80,8 +93,9 @@ export default class App extends Component {
       return <AppNavigation screenProps={{
         username,
         token,
+        organizations,
         logout: this.performLogout,
-        unregister: this.performUnregistration
+        unregister: this.performUnregistration,
       }} />
     } else {
       return <Login onPress={this.performLogin}/>

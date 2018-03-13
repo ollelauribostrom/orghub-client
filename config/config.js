@@ -1,3 +1,3 @@
 export default {
-  baseUrl: 'https://orghub-gateway.now.sh',
+  baseUrl: 'https://orghub-authservice.now.sh/api/v1',
 }
