@@ -20,7 +20,7 @@ export default function Account({ screenProps }) {
         text='Delete account'
         fillColor='#EF793E'
         icon='ios-close-circle-outline'
-        onPress={() => console.log('delete account')}
+        onPress={screenProps.unregister}
         style={styles.button}
       />
     </View>

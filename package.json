@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "expo": "^23.0.4",
+    "qs": "^6.5.1",
     "react": "16.0.0",
     "react-native": "0.50.3",
     "react-native-scrollable-tab-view": "^0.8.0",
