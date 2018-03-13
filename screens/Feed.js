@@ -1,19 +1,30 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, FlatList, RefreshControl } from 'react-native';
-import { mockFeed, mockFetch } from '../mock';
+import { getUserFeed } from '../lib/feed';
 import FeedItem from '../components/FeedItem';
 
 export default class Feed extends Component {
   state = {
     refreshing: false,
-    feedItems: mockFeed
+    feedItems: [],
   };
 
-  onRefresh = async () => {
-    console.log('fetch new feed');
+  async fetchFeed() {
     this.setState({ refreshing: true })
-    await mockFetch();
-    this.setState({ refreshing: false })
+    const { organizations, token } = this.props.screenProps;
+    const feedItems = await getUserFeed(organizations, token);
+    console.log(feedItems);
+    this.setState({ feedItems, refreshing: false })
+  }
+
+  async componentDidUpdate(prevProps, prevState) {
+    if (this.props.screenProps.organizations !== prevProps.screenProps.organizations) {
+      await this.fetchFeed();
+    }
+  }
+
+  onRefresh = async () => {
+    await this.fetchFeed();
   }
 
   render() {
@@ -21,7 +32,8 @@ export default class Feed extends Component {
       <View style={styles.container}>
         <FlatList 
           data={this.state.feedItems}
-          renderItem={({item}) => <FeedItem {...item}/>}
+          renderItem={({item}) => <FeedItem {...item} />}
+          keyExtractor={item => item.id}
           refreshControl={
             <RefreshControl
               refreshing={this.state.refreshing}

@@ -11,7 +11,6 @@ const Page = ({text}) =>  {
 }
 
 export default function Organization({ navigation }) {
-  console.log(navigation);
   return (
     <ScrollableTabView
       tabBarBackgroundColor='#F8F8F8'

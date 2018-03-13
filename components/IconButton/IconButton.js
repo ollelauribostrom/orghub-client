@@ -3,7 +3,7 @@ import { Text, View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import styles from './styles';
 
-export default function Account({ onPress, fillColor, icon, text, style }) {
+export default function IconButton({ onPress, fillColor, icon, text, style }) {
   return (
     <TouchableOpacity 
         onPress={onPress}

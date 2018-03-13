@@ -10,9 +10,7 @@ export default class App extends Component {
   state = {
     token: null,
     username: null,
-    fontsLoaded: false,
-    organizations: [],
-    isRestoring: true,
+    fontsLoaded: false
   }
 
   async componentDidMount() {
@@ -25,12 +23,10 @@ export default class App extends Component {
     });
     const { token, username } = await restore();
     this.setState({ fontsLoaded: true, token, username });
-    await this.loadOrganizations();
-    this.setState({ isRestoring: false });
   }
 
   async componentDidUpdate(prevProps, prevState) {
-    if (prevState.token === null && this.state.token !== null && !this.state.isRestoring) {
+    if (prevState.token === null && this.state.token !== null) {
       this.loadOrganizations();
     }
   }
@@ -51,6 +47,7 @@ export default class App extends Component {
     WebBrowser.dismissBrowser();
     const { error, username, token } = await login(event);
     if (error) {
+      console.log(error);
       return Alert.alert('Something went wrong');
     }
     this.setState({ username, token });
@@ -85,13 +82,13 @@ export default class App extends Component {
   }
 
   render() {
-    const { fontsLoaded, token, username, organizations, isRestoring } = this.state;
+    const { fontsLoaded, token, username, organizations } = this.state;
     
     if (!fontsLoaded) {
       return null;
     }
 
-    if (token && !isRestoring) {
+    if (token) {
       return <AppNavigation 
         screenProps={{
           username,
@@ -103,10 +100,7 @@ export default class App extends Component {
         }}
       />
     } else {
-      return <Login
-        onPress={this.performLogin}
-        restoring={this.isRestoring}
-      />
+      return <Login onPress={this.performLogin} />
     }
   }
 }

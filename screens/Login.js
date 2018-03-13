@@ -1,17 +1,15 @@
 import React from 'react';
-import { StyleSheet, Text, View  } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import IconButton from '../components/IconButton/';
 
-export default function Login({ username, onPress, restoring }) {
-  const buttonText = restoring ? 'Sign in with GitHub' : 'Signing in';
-  const iconType = restoring ? 'spinner' : 'logo-github';
+export default function Login({ username, onPress }) {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>OrgHub</Text>
       <Text style={styles.text}>Manage your Github organizations</Text>
       <IconButton
-        text={buttonText}
-        icon={iconType}
+        text='Sign in with GitHub'
+        icon='logo-github'
         onPress={onPress}
         style={styles.button}
       />
