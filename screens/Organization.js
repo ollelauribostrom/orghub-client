@@ -7,7 +7,7 @@ import FeedItem from '../components/FeedItem';
 import { Octicons } from '@expo/vector-icons';
 import { getNotificationSettings, enableNotifications, disableNotifications, updateNotifications } from '../lib/notifications';
 
-const Notifications = ({ settings, toggleNotifications, changePhone }) =>  {
+const Notifications = ({ settings, toggleNotifications, onPhoneInput, changePhone }) =>  {
   return (
     <View style={styles.settingsContainer}>
       <View style={styles.settingField}>
@@ -16,9 +16,16 @@ const Notifications = ({ settings, toggleNotifications, changePhone }) =>  {
       </View>
       {
         settings.off ? null : ( 
-        <View style={styles.settingField}>
+        <View>
           <Text>SMS:</Text>
-          <TextInput value={settings.phoneNumber} onSubmitEditing={changePhone}/>
+          <View style={styles.inputField}>
+            <TextInput
+              style={{height: 40, borderColor: 'gray', borderWidth: 1}}
+              value={settings.phoneNumber}
+              onSubmitEditing={changePhone}
+              onChangeText={onPhoneInput}
+            />
+          </View>
         </View>)
       }
     </View>
@@ -99,17 +106,19 @@ export default class Organization extends Component {
     const organization = this.props.navigation.state.params.login;
     const token = this.props.screenProps.token;
     if (this.state.settings.off) {
-      this.setState({ settings: { off: false }})
+      this.setState({ settings: Object.assign(this.state.settings, { off: false })})
       await enableNotifications(organization, token);
-      await this.loadNotificationSettings(organization, token);
     } else {
-      this.setState({ settings: { off: true }})
+      this.setState({ settings: Object.assign(this.state.settings, { off: true })})
       await disableNotifications(organization, token);
     }
   }
 
-  changePhone = async phoneNumber => {
+  onPhoneInput = phoneNumber  => {
     this.setState({ settings: Object.assign(this.state.settings, { phoneNumber })})
+  }
+
+  changePhone = async ev => {
     const organization = this.props.navigation.state.params.login;
     const token = this.props.screenProps.token;
     await updateNotifications(this.state.settings, organization, token);
@@ -131,6 +140,7 @@ export default class Organization extends Component {
           settings={this.state.settings}
           toggleNotifications={this.toggleNotifications}
           changePhone={this.changePhone}
+          onPhoneInput={this.onPhoneInput}
         />
       </ScrollableTabView>
     );
@@ -160,5 +170,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexDirection: 'row',
     marginBottom: 20
+  },
+  inputField: {
+    borderColor: '#000',
+    borderWidth: 1
   }
 });
