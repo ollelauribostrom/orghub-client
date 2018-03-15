@@ -8,11 +8,9 @@ export default class Feed extends Component {
     feedItems: [],
   };
 
-  async componentWillReceiveProps(prevProps, prevState) {
-    const { organizations, token, appError } = this.props.screenProps;
-    this.setState({ organizations, token, appError })
-
-    if (organizations) {
+  async componentDidUpdate(prevProps, prevState) {
+    const { organizations } = this.props.screenProps;
+    if (organizations !== prevProps.screenProps.organizations) {
       await this.fetchFeedItems();
     }
   }
@@ -22,10 +20,11 @@ export default class Feed extends Component {
   }
 
   fetchFeedItems = async () => {
+    const { organizations, token, appError } = this.props.screenProps;
     try {
-      if (this.state.organizations && this.state.token && !this.state.appError) {
+      if (organizations && token && !appError) {
         this.setState({ refreshing: true })
-        const feedItems = await getUserFeed(this.state.organizations, this.state.token);
+        const feedItems = await getUserFeed(organizations, token);
         this.setState({ feedItems, refreshing: false })
       }
     } catch (err) {
@@ -39,7 +38,7 @@ export default class Feed extends Component {
   render() {
     let emptyMessage = 'No events yet!';
 
-    if (this.state.appError) {
+    if (this.props.screenProps.appError) {
       emptyMessage = 'Could not load your organizations. Try refreshing!';;
     }
 

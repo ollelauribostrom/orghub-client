@@ -3,7 +3,7 @@ import { View, Text, FlatList, RefreshControl } from 'react-native';
 import { Entypo } from '@expo/vector-icons';
 import styles from './styles';
 
-const CustomRefreshControl = ({refreshing, onRefresh}) => (
+const CustomRefreshControl = ({ refreshing, onRefresh }) => (
   <RefreshControl
     refreshing={refreshing || false}
     onRefresh={onRefresh}
@@ -12,11 +12,11 @@ const CustomRefreshControl = ({refreshing, onRefresh}) => (
   />
 );
 
-const HeaderComponent = ({title}) => title ? (
+const HeaderComponent = ({ title }) => title ? (
   <Text style={styles.heading}>{title}</Text>
 ) : null;
 
-const EmptyMessage = ({message}) => (
+const EmptyMessage = ({ message, hide }) => !hide ? (
   <View style={styles.emptyMessage}>
     <View style={styles.emptyMessageHeader}>
       <View style={styles.emptyMessageIconContainer}>
@@ -28,7 +28,7 @@ const EmptyMessage = ({message}) => (
       </View>  
     </View>  
   </View>
-)
+) : null
 
 export default function RefreshableList({
   data,
@@ -47,7 +47,7 @@ export default function RefreshableList({
         keyExtractor={keyExtractor}
         refreshControl={<CustomRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListHeaderComponent={<HeaderComponent title={title} />}
-        ListEmptyComponent={<EmptyMessage message={emptyMessage} />}
+        ListEmptyComponent={<EmptyMessage message={emptyMessage} hide={refreshing} />}
       />
     </View>
   )

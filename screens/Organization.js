@@ -22,16 +22,18 @@ export default class Organization extends Component {
     await this.fetchSettings();
   }
 
-  componentWillReceiveProps() {
-    const organization = this.props.navigation.state.params.login;
-    const token = this.props.screenProps.token;
+  componentWillReceiveProps(nextProps) {
+    const organization = nextProps.navigation.state.params.login;
+    const token = nextProps.screenProps.token;
     this.setState({ organization, token });
   }
 
   fetchOrgFeed = async () => {
+    const organization = this.props.navigation.state.params.login;
+    const token = this.props.screenProps.token;
     try {
       this.setState({ loadingFeed: true })
-      const feedItems = await getOrganizationFeed(this.state.organization, this.state.token);
+      const feedItems = await getOrganizationFeed(organization, token);
       this.setState({ feedItems, feedError: false, loadingFeed: false });
     } catch (err) {
       this.setState({ feedError: true, loadingFeed: false })

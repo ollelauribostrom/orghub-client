@@ -3,7 +3,6 @@ import { RefreshableList , Organization } from '../components';
 
 export default function Organizations({ navigation, screenProps }) {
   const { organizations, loading, fetchOrganizations, appError } = screenProps;
-  console.log(organizations)
   let emptyMessage = 'You do not have any organizations';
 
   if (appError) {
