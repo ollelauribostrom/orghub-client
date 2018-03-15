@@ -1,8 +1,16 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import IconButton from '../components/IconButton/';
+import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { IconButton } from '../components';
 
-export default function Login({ username, onPress }) {
+export default function Login({ onPress, restored }) {
+  if (!restored) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="small" color="#fff" />
+      </View>
+    )
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>OrgHub</Text>

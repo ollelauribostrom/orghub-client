@@ -1,76 +1,10 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, FlatList, RefreshControl, Switch, TextInput } from 'react-native';
-import ScrollableTabView from 'react-native-scrollable-tab-view'
+import ScrollableTabView from 'react-native-scrollable-tab-view';
+import { FeedTab, StatsTab, SettingsTab } from '../components';
 import { getOrganizationFeed } from '../lib/feed';
 import { getStats } from '../lib/stats';
-import FeedItem from '../components/FeedItem';
-import { Octicons } from '@expo/vector-icons';
-import { getNotificationSettings, enableNotifications, disableNotifications, updateNotifications } from '../lib/notifications';
-
-const Notifications = ({ settings, toggleNotifications, onPhoneInput, changePhone }) =>  {
-  return (
-    <View style={styles.settingsContainer}>
-      <View style={styles.settingField}>
-        <Text>Notifications:</Text>
-        <Switch value={!settings.off} onValueChange={toggleNotifications}/>
-      </View>
-      {
-        settings.off ? null : ( 
-        <View>
-          <Text>SMS:</Text>
-          <View style={styles.inputField}>
-            <TextInput
-              style={{height: 40, borderColor: 'gray', borderWidth: 1}}
-              value={settings.phoneNumber}
-              onSubmitEditing={changePhone}
-              onChangeText={onPhoneInput}
-            />
-          </View>
-        </View>)
-      }
-    </View>
-  )
-}
-
-const Feed = ({ feedItems }) => {
-  return (
-    <View style={styles.container}>
-      <FlatList 
-        data={feedItems}
-        renderItem={({item}) => <FeedItem {...item} />}
-        keyExtractor={item => item.id}
-        refreshControl={
-          <RefreshControl
-            refreshing={!feedItems}
-            colors = {['#3EABEF']}
-            tintColor = '#3EABEF'
-          />
-        }
-      />
-    </View>
-  )
-}
-
-const Stats = ({ stats }) => {
-  if (!stats) {
-    return null
-  }
-
-  if (stats.error) {
-    return (<Text>{stats.error}</Text>)
-  }
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.statsContainer}>
-        <Text style={styles.statsText}><Octicons name='repo-forked'/> Forks: {stats.forks}</Text>
-        <Text style={styles.statsText}><Octicons name='star'/> Stars: {stats.stars}</Text>
-        <Text style={styles.statsText}><Octicons name='issue-opened'/> Open Issues: {stats.issues}</Text>
-        <Text style={styles.statsText}><Octicons name='file-code'/> Languages: {stats.languages.join(', ')}</Text>
-      </View>
-    </View>
-  )
-}
+import { getSettings, enableNotifications, disableNotifications, updateSettings } from '../lib/settings';
 
 export default class Organization extends Component {
   state = {
@@ -82,46 +16,87 @@ export default class Organization extends Component {
   async componentWillMount() {
     const organization = this.props.navigation.state.params.login;
     const token = this.props.screenProps.token;
-    await this.loadFeed(organization, token);
-    await this.loadStats(organization, token);
-    await this.loadNotificationSettings(organization, token);
+    this.setState({ organization, token });
+    await this.fetchOrgFeed();
+    await this.fetchStats();
+    await this.fetchSettings();
   }
 
-  loadNotificationSettings = async (organization, token) => {
-    const settings = await getNotificationSettings(organization, token);
-    this.setState({ settings })
-  }
-
-  loadFeed = async (organization, token) => {
-    const feedItems = await getOrganizationFeed(organization, token);
-    this.setState({ feedItems });
-  }
-
-  loadStats = async (organization, token) => {
-    const stats = await getStats(organization, token);
-    this.setState({ stats });
-  }
-
-  toggleNotifications = async () => {
+  componentWillReceiveProps() {
     const organization = this.props.navigation.state.params.login;
     const token = this.props.screenProps.token;
-    if (this.state.settings.off) {
-      this.setState({ settings: Object.assign(this.state.settings, { off: false })})
-      await enableNotifications(organization, token);
-    } else {
-      this.setState({ settings: Object.assign(this.state.settings, { off: true })})
-      await disableNotifications(organization, token);
+    this.setState({ organization, token });
+  }
+
+  fetchOrgFeed = async () => {
+    try {
+      this.setState({ loadingFeed: true })
+      const feedItems = await getOrganizationFeed(this.state.organization, this.state.token);
+      this.setState({ feedItems, feedError: false, loadingFeed: false });
+    } catch (err) {
+      this.setState({ feedError: true, loadingFeed: false })
+      return this.props.screenProps.onError(err, {
+        log: 'Error loading organization feed'
+      })
     }
   }
 
-  onPhoneInput = phoneNumber  => {
-    this.setState({ settings: Object.assign(this.state.settings, { phoneNumber })})
+  fetchStats = async () => {
+    this.setState({ loadingStats: true })
+    const stats = await getStats(this.state.organization, this.state.token);
+    this.setState({ stats, statsError: false, loadingStats: false });
   }
 
-  changePhone = async ev => {
-    const organization = this.props.navigation.state.params.login;
-    const token = this.props.screenProps.token;
-    await updateNotifications(this.state.settings, organization, token);
+  fetchSettings = async () => {
+    this.setState({ loadingSettings: true })
+    const settings = await getSettings(this.state.organization, this.state.token);
+    this.setState({ settings, loadingSettings: false })
+  }
+
+  onToggle = async () => {
+    if (this.state.loadingSettings) {
+      return;
+    }
+    this.setState({ loadingSettings: true })
+
+    try {
+      const settings = Object.assign(this.state.settings, { off: !this.state.settings.off });
+      if (this.state.settings.off) {
+        await enableNotifications(this.state.organization, this.state.token);
+        this.setState({ settings, loadingSettings: false })
+      } else {
+        await disableNotifications(this.state.organization, this.state.token);
+        this.setState({ settings, loadingSettings: false })
+      }
+    } catch (err) {
+      this.setState({ loadingSettings: false })
+      return this.props.screenProps.onError(err, {
+        log: `Error turning notifications ${this.state.settings.off ? 'off' : 'on'}`
+      })
+    }  
+  }
+
+  onInput = phoneNumber  => {
+    if (this.state.loadingSettings) {
+      return;
+    }
+
+    const settings = Object.assign(this.state.settings, { phoneNumber });
+    this.setState({ settings })
+  }
+
+  onSubmit = async ev => {
+    this.setState({ loadingSettings: true })
+    try {
+      await updateSettings(this.state.settings, this.state.organization, this.state.token);
+      this.setState({ loadingSettings: false })
+    } catch (err) {
+      this.fetchSettings();
+      this.setState({ loadingSettings: false })
+      return this.props.screenProps.onError(err, {
+        log: 'Error updating settings'
+      })
+    }
   }
 
   render() {
@@ -133,46 +108,27 @@ export default class Organization extends Component {
         tabBarUnderlineStyle={{backgroundColor: '#F8F8F8'}}
         tabBarTextStyle={{fontFamily: 'Roboto'}}
       >
-        <Feed tabLabel='Feed' feedItems={this.state.feedItems} />
-        <Stats tabLabel='Statistics' stats={this.state.stats} />
-        <Notifications 
-          tabLabel='Notifications' 
+        <FeedTab
+          tabLabel='Feed'
+          feedItems={this.state.feedItems}
+          feedError={this.state.feedError}
+          loadingFeed={this.state.loadingFeed}
+          onRefresh={this.fetchOrgFeed}
+        />
+        <StatsTab
+          tabLabel='Statistics'
+          stats={this.state.stats}
+          loadingStats={this.state.loadingStats}
+        />
+        <SettingsTab 
+          tabLabel='Settings' 
           settings={this.state.settings}
-          toggleNotifications={this.toggleNotifications}
-          changePhone={this.changePhone}
-          onPhoneInput={this.onPhoneInput}
+          onToggle={this.onToggle}
+          onInput={this.onInput}
+          onSubmit={this.onSubmit}
+          loadingSettings={this.state.loadingSettings}
         />
       </ScrollableTabView>
     );
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  statsContainer: {
-    padding: 20
-  },
-  statsText: {
-    fontSize: 16,
-    marginBottom: 10
-  },
-  settingsContainer: {
-    flex: 1,
-    backgroundColor: '#fff',
-    padding: 20
-  },
-  settingField: {
-    flex: 0,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexDirection: 'row',
-    marginBottom: 20
-  },
-  inputField: {
-    borderColor: '#000',
-    borderWidth: 1
-  }
-});

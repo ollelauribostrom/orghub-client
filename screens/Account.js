@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View  } from 'react-native';
-import IconButton from '../components/IconButton';
+import { IconButton } from '../components';
 
 export default function Account({ screenProps }) {
   return (
@@ -13,14 +13,14 @@ export default function Account({ screenProps }) {
         text='Logout'
         fillColor='#EFC43E'
         icon='ios-log-out'
-        onPress={screenProps.logout}
+        onPress={screenProps.onLogout}
         style={styles.button}
       />
       <IconButton
         text='Delete account'
         fillColor='#EF793E'
         icon='ios-close-circle-outline'
-        onPress={screenProps.unregister}
+        onPress={screenProps.onUnregistration}
         style={styles.button}
       />
     </View>

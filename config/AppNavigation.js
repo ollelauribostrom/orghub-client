@@ -1,10 +1,7 @@
 import React from 'react';
 import { StackNavigator, TabNavigator } from 'react-navigation';
 import { Ionicons } from '@expo/vector-icons';
-import Account from '../screens/Account';
-import Feed from '../screens/Feed';
-import Organizations from '../screens/Organizations';
-import Organization from '../screens/Organization';
+import { Account, Feed, Organizations, Organization } from '../screens';
 
 const header = (title = 'OrgHub', hideBoarder = false) => {
   return {

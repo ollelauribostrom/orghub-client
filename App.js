@@ -1,107 +1,152 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Alert, Linking } from 'react-native';
-import { Font, Constants, WebBrowser } from 'expo';
-import { AppNavigation, config } from './config';
-import Login from './screens/Login';
-import { restore, login, logout, unregister } from './lib/auth';
+import { StyleSheet, Text, View, Linking } from 'react-native';
+import { Constants, WebBrowser } from 'expo';
+import { AppNavigation, baseUrl } from './config';
+import  { Login } from './screens';
+import { restore, login, logout, unregister, clearStore } from './lib/auth';
 import { getOrganizations } from './lib/organizations';
+import loadFonts from './lib/fonts';
+import confirm from './lib/confirm';
 
 export default class App extends Component {
   state = {
     token: null,
     username: null,
-    fontsLoaded: false
+    restored: false,
   }
 
   async componentDidMount() {
-    await Font.loadAsync({
-      'Roboto': require('./assets/fonts/Roboto-Regular.ttf'),
-      'Roboto-Bold': require('./assets/fonts/Roboto-Bold.ttf'),
-      'Roboto-Medium': require('./assets/fonts/Roboto-Medium.ttf'),
-      'Roboto-Light': require('./assets/fonts/Roboto-Light.ttf'),
-      'Roboto-Thin': require('./assets/fonts/Roboto-Thin.ttf'),
-    });
-    const { token, username } = await restore();
-    this.setState({ fontsLoaded: true, token, username });
-  }
-
-  async componentDidUpdate(prevProps, prevState) {
-    if (prevState.token === null && this.state.token !== null) {
-      this.loadOrganizations();
+    await loadFonts();
+    try {
+      const { token, username } = await restore();
+      this.setState({ restored: true, token, username });
+    } catch (err) {
+      return this.onError(err, {
+        log: 'Error on restore',
+        clear: true,
+        state: { restored: true }
+      });
     }
   }
 
-  loadOrganizations = async () => {
-    console.log(this.state)
-    const organizations = await getOrganizations(this.state.token);
-    this.setState({ organizations });
+  async componentDidUpdate(prevProps, prevState) {
+    if (prevState.token === null && this.state.token) {
+      await this.fetchOrganizations();
+    }
   }
 
-  performLogin = async () => {
-    Linking.addEventListener('url', this.onLoginRedirect);;
-    const url = `${config.baseUrl}/login?redirect=${Constants.linkingUri}`;
-    let result = await WebBrowser.openBrowserAsync(url);
-    Linking.removeEventListener('url', this.onLoginRedirect);
+  fetchOrganizations = async () => {
+    try {
+      this.setState({ loading: true })
+      const organizations = await getOrganizations(this.state.token);
+      this.setState({ loading: false, organizations, appError: false });
+    } catch (err) {
+      return this.onError(err, {
+        log: 'Error fetching user organizations',
+        state: { appError: true }
+      });
+    }
+  }
+
+  onLogin = async () => {
+    try {
+      Linking.addEventListener('url', this.onLoginRedirect);;
+      const url = `${baseUrl}/login?redirect=${Constants.linkingUri}`;
+      let result = await WebBrowser.openBrowserAsync(url);
+    } catch (err) {
+      this.onError(err, {
+        alert: 'Something went wrong during login',
+        log: 'Error on login',
+        clear: true,
+      });
+    } 
   }
 
   onLoginRedirect = async event => {
     WebBrowser.dismissBrowser();
+    Linking.removeEventListener('url', this.onLoginRedirect);
     const { error, username, token } = await login(event);
     if (error) {
-      console.log(error);
-      return Alert.alert('Something went wrong');
+      this.onError(error, {
+        alert: 'Something went wrong during login',
+        log: 'Error on login redirect',
+        clear: true,
+      })
     }
     this.setState({ username, token });
   }
 
-  performLogout = async () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to log out?",
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Yes', onPress: async () => {
-            await logout(this.state.token);
-            this.setState({ token: null, username: null })
-        }}
-      ]
-    )
+  onLogout = async () => {
+    try {
+      confirm({
+        header: 'Logout',
+        text: 'Are you sure you want to log out?',
+        onPress: async () => {
+          await logout(this.state.token);
+          this.setState({ token: null, username: null })
+        }})
+    } catch (err) {
+      return this.onError(err, {
+        log: 'Error on logout',
+        clear: true,
+        state: { token: null, username: null }
+      })
+    }
   }
 
-  performUnregistration = async () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to log out?",
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Yes', onPress: async () => {
-            await unregister(this.state.token);
-            this.setState({ token: null, username: null })
-        }}
-      ]
-    )
+  onUnregistration = async () => {
+    try {
+      confirm({
+        header: 'Delete account',
+        text: 'Are you sure you want to delete your account?',
+        onPress: async () => {
+          await unregister(this.state.token);
+          this.setState({ token: null, username: null })
+        }})
+    } catch (err) {
+      return this.onError(err, {
+        log: 'Error on unregistration',
+        clear: true,
+        state: { token: null, username: null }
+      })
+    }
   }
+
+  onError = async (err, { log = 'Error: ', clear, state, alert }) => {
+    console.log(log, err);
+
+    if (clear) {
+      await clearStore();
+    }
+    if (state) {
+      this.setState(state)
+    }
+    if (alert) {
+      Alert.alert('Error :(', alert)
+    }
+  } 
 
   render() {
-    const { fontsLoaded, token, username, organizations } = this.state;
-    
-    if (!fontsLoaded) {
-      return null;
-    }
-
-    if (token) {
-      return <AppNavigation 
-        screenProps={{
-          username,
-          token,
-          organizations,
-          logout: this.performLogout,
-          unregister: this.performUnregistration,
-          loadOrganizations: this.loadOrganizations,
-        }}
-      />
+    if (this.state.token) {
+      const state = this.state;
+      return (
+        <AppNavigation
+          screenProps={{
+            ...state,
+            onLogout: this.onLogout,
+            onUnregistration: this.onUnregistration,
+            fetchOrganizations: this.fetchOrganizations,
+            onError: this.onError
+          }}
+        />
+      );
     } else {
-      return <Login onPress={this.performLogin} />
+      return (
+        <Login  
+          onPress={this.onLogin} 
+          restored={this.state.restored}
+        />
+      )
     }
   }
 }

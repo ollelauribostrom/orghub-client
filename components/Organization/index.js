@@ -1,3 +1,3 @@
 import Organization from './Organization';
 
-export default Organization
+export default Organization;

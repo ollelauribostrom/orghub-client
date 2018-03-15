@@ -1,9 +1,9 @@
 import React from 'react';
 import { Text, View, Image } from 'react-native';
-import { dateFormatter } from '../../lib/dateFormatter';
-import styles from './styles'
+import dateFormatter from '../../lib/dateFormatter';
+import styles from './styles';
 
-export default ({ actor, type, created_at, org }) => {
+export default function FeedItem ({ actor, type, created_at, org }) {
   return (
     <View style={styles.feedItem}>
       <View style={styles.feedItemHeader}>

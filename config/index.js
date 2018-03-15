@@ -1,4 +1,5 @@
 import AppNavigation from './AppNavigation';
-import config from './config';
 
-export { AppNavigation, config }
+const baseUrl = 'https://orghub-gateway.now.sh';
+
+export { AppNavigation, baseUrl };

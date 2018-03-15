@@ -1,52 +1,24 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, FlatList, RefreshControl } from 'react-native';
-import Organization from '../components/Organization';
+import { RefreshableList , Organization } from '../components';
 
-export default class Organizations extends Component {
-  state = {
-    refreshing: false,
-  };
+export default function Organizations({ navigation, screenProps }) {
+  const { organizations, loading, fetchOrganizations, appError } = screenProps;
+  console.log(organizations)
+  let emptyMessage = 'You do not have any organizations';
 
-  onRefresh = async () => {
-    this.setState({ refreshing: true })
-    await this.props.screenProps.loadOrganizations();
-    this.setState({ refreshing: false })
+  if (appError) {
+    emptyMessage = 'Could not load your organizations. Pull to refresh!';
   }
 
-  render() {
-    return (
-      <View style={styles.container}>
-        <FlatList 
-          data={this.props.screenProps.organizations}
-          renderItem={({item}) => <Organization {...item} navigation={this.props.navigation}/>}
-          keyExtractor={organization => organization.login}
-          refreshControl={
-            <RefreshControl
-              refreshing={this.state.refreshing}
-              onRefresh={this.onRefresh}
-              colors = {['#3EABEF']}
-              tintColor = '#3EABEF'
-            />
-          }
-          ListHeaderComponent = {
-            <Text style={styles.heading}>Organizations</Text>
-          }
-        />
-      </View>
-    )
-  }
+  return (
+    <RefreshableList 
+      data={organizations}
+      renderItem={({item}) => <Organization {...item} navigation={navigation}/>}
+      keyExtractor={organization => organization.login}
+      refreshing={loading}
+      onRefresh={fetchOrganizations}
+      title='Organizations'
+      emptyMessage={emptyMessage}
+    />
+  )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  heading: {
-    fontSize: 30,
-    paddingTop: 20,
-    paddingHorizontal: 20,
-    color: '#6A6A6A',
-    fontFamily: 'Roboto-Thin'
-  },
-});
