@@ -24,9 +24,9 @@ const EmptyMessage = ({message}) => (
       </View>
       <View>
         <Text style={styles.title}>None Found</Text>
+        <Text style={styles.message}>{message}</Text>
       </View>  
     </View>  
-    <Text style={styles.message}>{message}</Text>
   </View>
 )
 

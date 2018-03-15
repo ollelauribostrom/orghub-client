@@ -19,6 +19,11 @@ export default StyleSheet.create({
     borderBottomColor: '#F1F1F1',
     paddingBottom: 15,
     marginHorizontal: 20,
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap'
   },
   emptyMessageHeader: {
     flex: 1,
@@ -26,6 +31,7 @@ export default StyleSheet.create({
     marginBottom: 10
   },
   emptyMessageIconContainer: {
+    backgroundColor: '#eaeaea',
     width: 40,
     height: 40,
     borderRadius: 8,
@@ -40,7 +46,8 @@ export default StyleSheet.create({
     fontFamily: 'Roboto-Medium'
   },
   message: {
+    marginLeft: 10,
     color: '#6A7F8D',
-    fontFamily: 'Roboto'
+    fontFamily: 'Roboto',
   }
 });

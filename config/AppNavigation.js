@@ -1,6 +1,6 @@
 import React from 'react';
 import { StackNavigator, TabNavigator } from 'react-navigation';
-import { Ionicons } from '@expo/vector-icons';
+import { SimpleLineIcons } from '@expo/vector-icons';
 import { Account, Feed, Organizations, Organization } from '../screens';
 
 const header = (title = 'OrgHub', hideBoarder = false) => {
@@ -54,8 +54,8 @@ export default TabNavigator(
       path: '/feed',
       navigationOptions: {
         tabBarIcon: ({ tintColor, focused }) => (
-          <Ionicons
-            name='ios-home'
+          <SimpleLineIcons
+            name='energy'
             size={26}
             style={{ color: tintColor }}
           />
@@ -64,11 +64,11 @@ export default TabNavigator(
     },
     OrganizationsTab: {
       screen: organizationsTab,
-      path: '/feed',
+      path: '/org',
       navigationOptions: {
         tabBarIcon: ({ tintColor, focused }) => (
-          <Ionicons
-            name='ios-browsers'
+          <SimpleLineIcons
+            name='organization'
             size={26}
             style={{ color: tintColor }}
           />
@@ -77,11 +77,11 @@ export default TabNavigator(
     },
     AccountTab: {
       screen: accountTab,
-      path: '/feed',
+      path: '/acc',
       navigationOptions: {
         tabBarIcon: ({ tintColor, focused }) => (
-          <Ionicons
-            name='ios-contact'
+          <SimpleLineIcons
+            name='ghost'
             size={26}
             style={{ color: tintColor }}
           />

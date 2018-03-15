@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Linking } from 'react-native';
+import { StyleSheet, Text, View, Linking, Alert } from 'react-native';
 import { Constants, WebBrowser } from 'expo';
 import { AppNavigation, baseUrl } from './config';
 import  { Login } from './screens';
