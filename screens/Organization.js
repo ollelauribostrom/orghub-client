@@ -63,7 +63,7 @@ export default class Organization extends Component {
 
     try {
       const settings = Object.assign(this.state.settings, { off: !this.state.settings.off });
-      if (this.state.settings.off) {
+      if (this.state.settings.off === false) {
         await enableNotifications(this.state.organization, this.state.token);
         this.setState({ settings, loadingSettings: false })
       } else {
